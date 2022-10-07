@@ -26,24 +26,24 @@ typedef struct {
 bankdata data;
 user SYSTEM_ACCOUNT = {-1, "System", "System"};
 
-userp bankdata_get_user_by_id(bankdata* data, long id) {
+userp _get_user_by_id(bankdata* data, long id, int* id_to_index) {
   if (id == -1) {
     return &SYSTEM_ACCOUNT;
   }
-  for (long i = 0; i < data->record_num; i++) {
-    userp current = (data->users + i);
-    if (current->id == id) {
-      return current;
-    }
-  }
+
+  return data->users + *(id_to_index + id);
+
   return NULL;
 }
 
 int bankdata_init(bankdata* data, char* filename) {
   FILE* f = fopen(filename, "r");
 
-  int co = fscanf(f, "%ld%ld", &data->user_num, &data->record_num);
-  if (co != 2)
+  long max_user_id;
+
+  int co =
+      fscanf(f, "%ld%ld%ld", &data->user_num, &data->record_num, &max_user_id);
+  if (co != 3)
     return -1;
 
   userp users = malloc(data->user_num * sizeof(user));
@@ -58,12 +58,19 @@ int bankdata_init(bankdata* data, char* filename) {
   }
   data->records = records;
 
+  int* id_to_index = malloc(max_user_id * sizeof(int));
+  if (!id_to_index) {
+    return -1;
+  }
+
   for (long i = 0; i < data->user_num; i++) {
     userp current = (data->users + i);
     int co = fscanf(f, "%ld%s%s%s", &current->id, current->username,
                     current->name, current->password);
     if (co != 4)
       return -1;
+
+    *(id_to_index + current->id) = i;
   }
 
   for (long i = 0; i < data->record_num; i++) {
@@ -73,11 +80,11 @@ int bankdata_init(bankdata* data, char* filename) {
     if (co != 3)
       return -1;
 
-    current->source = bankdata_get_user_by_id(data, source);
-    current->target = bankdata_get_user_by_id(data, target);
-    if (current->source == NULL || current->target == NULL)
-      return -1;
+    current->source = _get_user_by_id(data, source, id_to_index);
+    current->target = _get_user_by_id(data, target, id_to_index);
   }
+
+  free(id_to_index);
 
   return fclose(f);
 }
@@ -85,7 +92,8 @@ int bankdata_init(bankdata* data, char* filename) {
 void bankdata_save(bankdata* data, char* filename) {
   FILE* f = fopen(filename, "w");
 
-  fprintf(f, "%ld\t%ld\n", data->user_num, data->record_num);
+  fprintf(f, "%ld\t%ld\t%ld\n", data->user_num, data->record_num,
+          (data->users + data->user_num - 1)->id);
 
   for (long i = 0; i < data->user_num; i++) {
     userp current = data->users + i;
