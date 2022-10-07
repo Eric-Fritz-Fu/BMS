@@ -21,7 +21,7 @@ typedef struct {
   recordp records;
 } bankdata;
 
-userp bankdata_get_user_by_id(bankdata* data, long id);
+userp _get_user_by_id(bankdata* data, long id, int* id_to_index);
 
 int bankdata_init(bankdata* data, char* filename);
 
