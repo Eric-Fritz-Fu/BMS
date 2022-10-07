@@ -32,8 +32,6 @@ userp _get_user_by_id(bankdata* data, long id, int* id_to_index) {
   }
 
   return data->users + *(id_to_index + id);
-
-  return NULL;
 }
 
 int bankdata_init(bankdata* data, char* filename) {
