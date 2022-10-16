@@ -1,3 +1,4 @@
+#include "common.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,7 +12,7 @@
  *    https://blog.csdn.net/ky_heart/article/details/53783479
  *
  */
-int getch() {
+int getch(void) {
   int c = 0;
   struct termios org_opts, new_opts;
   int res = 0;
@@ -20,8 +21,12 @@ int getch() {
   assert(res == 0);
   //---- set new terminal parms --------
   memcpy(&new_opts, &org_opts, sizeof(new_opts));
+
+#pragma GCC diagnostic ignored "-Wsign-conversion"
   new_opts.c_lflag &=
       ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ECHOPRT | ECHOKE | ICRNL);
+#pragma GCC diagnostic pop
+
   tcsetattr(STDIN_FILENO, TCSANOW, &new_opts);
   c = getchar();
   //------  restore old settings ---------

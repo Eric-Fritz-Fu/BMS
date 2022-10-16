@@ -2,26 +2,28 @@
 #define BMS_DATABASE
 
 typedef struct {
-  long id;
+  unsigned long id;
   char username[30];
   char name[15];
   char password[40];
-} user, *userp;
+} user;
 
 typedef struct {
-  userp source;
-  userp target;
+  user* source;
+  user* target;
   int sum;
-} record, *recordp;
+} record;
 
 typedef struct {
-  long user_num;
-  userp users;
-  long record_num;
-  recordp records;
+  unsigned long user_num;
+  user* users;
+  unsigned long record_num;
+  record* records;
 } bankdata;
 
-userp _get_user_by_id(bankdata* data, long id, int* id_to_index);
+user* _get_user_by_id(bankdata* data,
+                      unsigned long id,
+                      unsigned long* id_to_index);
 
 int bankdata_init(bankdata* data, char* filename);
 
