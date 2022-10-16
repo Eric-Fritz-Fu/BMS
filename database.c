@@ -8,25 +8,25 @@ typedef struct {
   char username[30];
   char name[15];
   char password[40];
-} user, *userp;
+} user;
 
 typedef struct {
-  userp source;
-  userp target;
+  user* source;
+  user* target;
   int sum;
-} record, *recordp;
+} record;
 
 typedef struct {
   long user_num;
-  userp users;
+  user* users;
   long record_num;
-  recordp records;
+  record* records;
 } bankdata;
 
 bankdata data;
 user SYSTEM_ACCOUNT = {-1, "System", "System"};
 
-userp _get_user_by_id(bankdata* data, long id, int* id_to_index) {
+user* _get_user_by_id(bankdata* data, long id, int* id_to_index) {
   if (id == -1) {
     return &SYSTEM_ACCOUNT;
   }
@@ -44,13 +44,13 @@ int bankdata_init(bankdata* data, char* filename) {
   if (co != 3)
     return -1;
 
-  userp users = malloc(data->user_num * sizeof(user));
+  user* users = malloc(data->user_num * sizeof(user));
   if (!users) {
     return -1;
   }
   data->users = users;
 
-  recordp records = malloc(data->record_num * sizeof(record));
+  record* records = malloc(data->record_num * sizeof(record));
   if (!records) {
     return -1;
   }
@@ -62,7 +62,7 @@ int bankdata_init(bankdata* data, char* filename) {
   }
 
   for (long i = 0; i < data->user_num; i++) {
-    userp current = (data->users + i);
+    user* current = data->users + i;
     int co = fscanf(f, "%ld%s%s%s", &current->id, current->username,
                     current->name, current->password);
     if (co != 4)
@@ -72,7 +72,7 @@ int bankdata_init(bankdata* data, char* filename) {
   }
 
   for (long i = 0; i < data->record_num; i++) {
-    recordp current = (data->records + i);
+    record* current = (data->records + i);
     long source, target;
     int co = fscanf(f, "%ld\t%ld\t%d\n", &source, &target, &current->sum);
     if (co != 3)
@@ -94,13 +94,13 @@ void bankdata_save(bankdata* data, char* filename) {
           (data->users + data->user_num - 1)->id);
 
   for (long i = 0; i < data->user_num; i++) {
-    userp current = data->users + i;
+    user* current = data->users + i;
     fprintf(f, "%ld\t%s\t%s\t%s\n", current->id, current->username,
             current->name, current->password);
   }
 
   for (long i = 0; i < data->record_num; i++) {
-    recordp current = data->records + i;
+    record* current = data->records + i;
     fprintf(f, "%ld\t%ld\t%d\n", current->source->id, current->target->id,
             current->sum);
   }
